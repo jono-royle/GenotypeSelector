@@ -4,7 +4,15 @@ import { Well } from './Well';
 import { NEXT_COLOUR } from './types';
 import type { Colour, WellState } from './types';
 
-const COLOUR_CODE: Record<Colour, number> = { blank: 0, green: 1, blue: 2, red: 3 };
+const GENOTYPE_SUFFIX: Record<Colour, string> = { blank: '', green: 'HOM', blue: 'HET', red: 'WT' };
+
+/** e.g. "BRCA1_HOM"; blank wells are empty. Without a gene name, just "HOM". */
+function genotypeLabel(colour: Colour, gene: string): string {
+  const suffix = GENOTYPE_SUFFIX[colour];
+  if (!suffix) return '';
+  const g = gene.trim();
+  return g ? `${g}_${suffix}` : suffix;
+}
 
 const ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 const COLS = Array.from({ length: 12 }, (_, i) => 12 - i); // 12 → 1 (on screen)
@@ -114,7 +122,9 @@ export default function App() {
     // Rows A–H, columns 1–12.
     lines.push(['', ...CSV_COLS].join(','));
     for (const r of ROWS) {
-      lines.push([r, ...CSV_COLS.map((c) => COLOUR_CODE[get(`${r}${c}`).colour])].join(','));
+      lines.push(
+        [r, ...CSV_COLS.map((c) => esc(genotypeLabel(get(`${r}${c}`).colour, gene)))].join(','),
+      );
     }
 
     lines.push('', `Gene,${esc(gene.trim())}`, `Plate,${esc(plateName.trim())}`);
