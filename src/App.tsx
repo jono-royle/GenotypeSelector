@@ -6,7 +6,7 @@ import type { Colour, WellState } from './types';
 const COLOUR_CODE: Record<Colour, number> = { blank: 0, green: 1, blue: 2, red: 3 };
 
 const ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-const COLS = Array.from({ length: 12 }, (_, i) => i + 1);
+const COLS = Array.from({ length: 12 }, (_, i) => 12 - i); // 12 → 1
 const STORAGE_KEY = 'genotype-selector-v1';
 const BLANK: WellState = { colour: 'blank', note: '' };
 
@@ -63,7 +63,7 @@ export default function App() {
     const esc = (s: string) => (/[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
     const lines: string[] = [];
 
-    // Standard plate orientation: rows A–H, columns 1–12.
+    // Rows A–H, columns 12–1.
     lines.push(['', ...COLS].join(','));
     for (const r of ROWS) {
       lines.push([r, ...COLS.map((c) => COLOUR_CODE[get(`${r}${c}`).colour])].join(','));
