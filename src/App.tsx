@@ -8,6 +8,15 @@ const COLOUR_CODE: Record<Colour, number> = { blank: 0, green: 1, blue: 2, red: 
 const ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 const COLS = Array.from({ length: 12 }, (_, i) => 12 - i); // 12 → 1
 const STORAGE_KEY = 'genotype-selector-v1';
+const GENE_KEY = 'genotype-selector-gene';
+
+function csvFileName(gene: string): string {
+  const d = new Date();
+  const date = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+  // Strip characters that aren't allowed in file names; spaces become underscores.
+  const safeGene = gene.trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_');
+  return safeGene ? `genotypes-${safeGene}-${date}.csv` : `genotypes-${date}.csv`;
+}
 const BLANK: WellState = { colour: 'blank', note: '' };
 
 type Plate = Record<string, WellState>;
@@ -23,6 +32,13 @@ function loadPlate(): Plate {
 
 export default function App() {
   const [plate, setPlate] = useState<Plate>(loadPlate);
+  const [gene, setGene] = useState<string>(() => {
+    try {
+      return localStorage.getItem(GENE_KEY) ?? '';
+    } catch {
+      return '';
+    }
+  });
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -34,6 +50,14 @@ export default function App() {
       /* storage unavailable (e.g. private mode) – state just won't persist */
     }
   }, [plate]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(GENE_KEY, gene);
+    } catch {
+      /* ignore */
+    }
+  }, [gene]);
 
   useEffect(() => {
     if (editing) textareaRef.current?.focus();
@@ -82,7 +106,7 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `genotypes-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = csvFileName(gene);
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -96,6 +120,19 @@ export default function App() {
   return (
     <main className="app">
       <h1>Genotype Selector</h1>
+
+      <label className="gene">
+        <span>Gene</span>
+        <input
+          type="text"
+          value={gene}
+          onChange={(e) => setGene(e.target.value)}
+          placeholder="Enter gene name"
+          autoCapitalize="off"
+          autoCorrect="off"
+          spellCheck={false}
+        />
+      </label>
 
       {/* Rotated for portrait: rows A–H run across, columns 1–12 run down. */}
       <div className="plate">
