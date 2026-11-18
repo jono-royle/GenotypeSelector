@@ -19,4 +19,4 @@ npm run dev
 
 1. Push this repo to GitHub.
 2. Go to **Settings → Pages** and set **Source** to **GitHub Actions**.
-3. Every push to `main` builds the site and publishes it to `https://<user>.github.io/<repo>/`.
+3. Every push to `main` builds the site and publishes it to `https://https://jono-royle.github.io/geneselector`.
