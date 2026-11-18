@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { renderPlateJpeg } from './plateImage';
 import { Well } from './Well';
 import { NEXT_COLOUR } from './types';
 import type { Colour, WellState } from './types';
@@ -34,14 +35,23 @@ function usePersistentString(key: string) {
 /** Strip characters that aren't allowed in file names; spaces become underscores. */
 const safeName = (s: string) => s.trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_');
 
-/** e.g. GenotypeBRCA1-Plate3-20261118.csv (empty parts are left out). */
-function csvFileName(gene: string, plate: string): string {
+/** e.g. GenotypeBRCA1-Plate3-20261118 (empty parts are left out); add the extension. */
+function exportBaseName(gene: string, plate: string): string {
   const d = new Date();
   const date = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
   const g = safeName(gene);
   const p = safeName(plate);
   const parts = [g ? `Genotype${g}` : 'Genotype', ...(p ? [`Plate${p}`] : []), date];
-  return `${parts.join('-')}.csv`;
+  return parts.join('-');
+}
+
+function download(href: string, fileName: string) {
+  const a = document.createElement('a');
+  a.href = href;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 const BLANK: WellState = { colour: 'blank', note: '' };
 
@@ -63,6 +73,7 @@ export default function App() {
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     try {
@@ -119,13 +130,24 @@ export default function App() {
 
     const blob = new Blob([lines.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = csvFileName(gene, plateName);
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    download(url, `${exportBaseName(gene, plateName)}.csv`);
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const exportImage = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const blob = await renderPlateJpeg({ gene, plateName, rows: ROWS, cols: COLS, get });
+      const url = URL.createObjectURL(blob);
+      download(url, `${exportBaseName(gene, plateName)}.jpg`);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      console.error(err);
+      window.alert('Sorry, the image could not be created.');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const resetAll = () => {
@@ -195,6 +217,9 @@ export default function App() {
         </button>
         <button type="button" className="action primary" onClick={exportCsv}>
           Export to CSV
+        </button>
+        <button type="button" className="action primary" onClick={exportImage} disabled={exporting}>
+          {exporting ? 'Saving…' : 'Export as image'}
         </button>
       </div>
 
