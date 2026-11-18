@@ -9,13 +9,38 @@ const ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 const COLS = Array.from({ length: 12 }, (_, i) => 12 - i); // 12 → 1
 const STORAGE_KEY = 'genotype-selector-v1';
 const GENE_KEY = 'genotype-selector-gene';
+const PLATE_KEY = 'genotype-selector-plate';
 
-function csvFileName(gene: string): string {
+/** A string kept in localStorage so it survives page reloads. */
+function usePersistentString(key: string) {
+  const [value, setValue] = useState<string>(() => {
+    try {
+      return localStorage.getItem(key) ?? '';
+    } catch {
+      return '';
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      /* ignore */
+    }
+  }, [key, value]);
+  return [value, setValue] as const;
+}
+
+/** Strip characters that aren't allowed in file names; spaces become underscores. */
+const safeName = (s: string) => s.trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_');
+
+/** e.g. GenotypeBRCA1-Plate3-20261118.csv (empty parts are left out). */
+function csvFileName(gene: string, plate: string): string {
   const d = new Date();
   const date = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
-  // Strip characters that aren't allowed in file names; spaces become underscores.
-  const safeGene = gene.trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_');
-  return safeGene ? `genotypes-${safeGene}-${date}.csv` : `genotypes-${date}.csv`;
+  const g = safeName(gene);
+  const p = safeName(plate);
+  const parts = [g ? `Genotype${g}` : 'Genotype', ...(p ? [`Plate${p}`] : []), date];
+  return `${parts.join('-')}.csv`;
 }
 const BLANK: WellState = { colour: 'blank', note: '' };
 
@@ -32,13 +57,8 @@ function loadPlate(): Plate {
 
 export default function App() {
   const [plate, setPlate] = useState<Plate>(loadPlate);
-  const [gene, setGene] = useState<string>(() => {
-    try {
-      return localStorage.getItem(GENE_KEY) ?? '';
-    } catch {
-      return '';
-    }
-  });
+  const [gene, setGene] = usePersistentString(GENE_KEY);
+  const [plateName, setPlateName] = usePersistentString(PLATE_KEY);
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -50,14 +70,6 @@ export default function App() {
       /* storage unavailable (e.g. private mode) – state just won't persist */
     }
   }, [plate]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(GENE_KEY, gene);
-    } catch {
-      /* ignore */
-    }
-  }, [gene]);
 
   useEffect(() => {
     if (editing) textareaRef.current?.focus();
@@ -106,7 +118,7 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = csvFileName(gene);
+    a.download = csvFileName(gene, plateName);
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -128,6 +140,19 @@ export default function App() {
           value={gene}
           onChange={(e) => setGene(e.target.value)}
           placeholder="Enter gene name"
+          autoCapitalize="off"
+          autoCorrect="off"
+          spellCheck={false}
+        />
+      </label>
+
+      <label className="gene">
+        <span>Plate</span>
+        <input
+          type="text"
+          value={plateName}
+          onChange={(e) => setPlateName(e.target.value)}
+          placeholder="Enter plate name"
           autoCapitalize="off"
           autoCorrect="off"
           spellCheck={false}

@@ -37,8 +37,16 @@ h1 {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 0 14px;
+  margin: 0 0 10px;
   font-weight: 600;
+}
+
+.gene span {
+  width: 3rem; /* keeps the Gene and Plate boxes aligned */
+}
+
+.gene + .plate {
+  margin-top: 14px;
 }
 
 .gene input {
