@@ -6,7 +6,8 @@ import type { Colour, WellState } from './types';
 const COLOUR_CODE: Record<Colour, number> = { blank: 0, green: 1, blue: 2, red: 3 };
 
 const ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-const COLS = Array.from({ length: 12 }, (_, i) => 12 - i); // 12 → 1
+const COLS = Array.from({ length: 12 }, (_, i) => 12 - i); // 12 → 1 (on screen)
+const CSV_COLS = [...COLS].reverse(); // 1 → 12 (in the CSV)
 const STORAGE_KEY = 'genotype-selector-v1';
 const GENE_KEY = 'genotype-selector-gene';
 const PLATE_KEY = 'genotype-selector-plate';
@@ -99,15 +100,17 @@ export default function App() {
     const esc = (s: string) => (/[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
     const lines: string[] = [];
 
-    // Rows A–H, columns 12–1.
-    lines.push(['', ...COLS].join(','));
+    // Rows A–H, columns 1–12.
+    lines.push(['', ...CSV_COLS].join(','));
     for (const r of ROWS) {
-      lines.push([r, ...COLS.map((c) => COLOUR_CODE[get(`${r}${c}`).colour])].join(','));
+      lines.push([r, ...CSV_COLS.map((c) => COLOUR_CODE[get(`${r}${c}`).colour])].join(','));
     }
+
+    lines.push('', `Gene,${esc(gene.trim())}`, `Plate,${esc(plateName.trim())}`);
 
     lines.push('', 'Well,Note');
     for (const r of ROWS) {
-      for (const c of COLS) {
+      for (const c of CSV_COLS) {
         const id = `${r}${c}`;
         const note = get(id).note.trim();
         if (note) lines.push(`${id},${esc(note)}`);
