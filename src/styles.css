@@ -1,0 +1,232 @@
+:root {
+  --bg: #ffffff;
+  --fg: #1a1a1a;
+  --muted: #6b6b6b;
+  --border: #9a9a9a;
+  --green: #2e9e4f;
+  --blue: #2f6fd6;
+  --red: #d63b3b;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 12px max(12px, env(safe-area-inset-right)) 24px max(12px, env(safe-area-inset-left));
+}
+
+h1 {
+  font-size: 1.25rem;
+  text-align: center;
+  margin: 4px 0 12px;
+}
+
+/* 1 header column + 8 well columns */
+.plate {
+  display: grid;
+  grid-template-columns: 1.5rem repeat(8, 1fr);
+  gap: 6px;
+  align-items: center;
+  justify-items: center;
+}
+
+.plate__header {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.well {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  /* Stop text selection / iOS callout / double-tap zoom on long press */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 80ms;
+}
+
+.well:active {
+  transform: scale(0.92);
+}
+
+.well__label {
+  font-size: clamp(0.6rem, 2.6vw, 0.8rem);
+  font-weight: 600;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.well--green,
+.well--blue,
+.well--red {
+  border-color: transparent;
+}
+.well--green {
+  background: var(--green);
+}
+.well--blue {
+  background: var(--blue);
+}
+.well--red {
+  background: var(--red);
+}
+.well--green .well__label,
+.well--blue .well__label,
+.well--red .well__label {
+  color: #fff;
+}
+
+.well__note-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #f5b700;
+  border: 2px solid var(--bg);
+  pointer-events: none;
+}
+
+.hint {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 14px 0 8px;
+}
+
+.key {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 18px;
+  font-size: 0.95rem;
+}
+
+.key li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.action {
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.action.primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal {
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.modal h2 {
+  font-size: 1.1rem;
+  margin: 0 0 10px;
+}
+
+.modal textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 16px; /* >=16px prevents iOS zoom on focus */
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  resize: vertical;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.modal__actions button {
+  padding: 8px 14px;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.modal__actions .primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121212;
+    --fg: #ececec;
+    --muted: #a0a0a0;
+    --border: #6a6a6a;
+  }
+}
